@@ -28,6 +28,14 @@ public class RSA {
 	public void setE(BigInteger e) {
 		this.e = e;
 	}
+	
+	public BigInteger getM() {
+		return m;
+	}
+	
+	public BigInteger getE() {
+		return e;
+	}
 
 	public BigInteger getN() { // Calculate n
 		return p.multiply(q);
@@ -56,6 +64,23 @@ public class RSA {
 		}
 
 		return eCandidates;
+	}
+
+	public BigInteger getD() {
+		if (isCoprime(e, getPhi())) {
+			return e.modInverse(getPhi());
+		}
+		return BigInteger.ZERO;
+	}
+
+	public BigInteger encryptM() { // If m is plaintext convert it to ciphertext.
+
+		return m.modPow(e, getN());
+	}
+
+	public BigInteger decryptM() { // If m is ciphertext convert it back to plaintext.
+
+		return encryptM().modPow(getD(), getN());
 	}
 
 	private boolean isCoprime(BigInteger a, BigInteger b) { // coprime helper function

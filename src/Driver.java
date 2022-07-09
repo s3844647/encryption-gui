@@ -4,7 +4,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
-import java.awt.Font;
 import javax.swing.JTextField;
 import javax.swing.JSeparator;
 import javax.swing.JButton;
@@ -12,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.math.BigInteger;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextArea;
+import java.awt.Font;
 
 /**
  * Main driver class of the program. Handles creating and updating the GUI.
@@ -35,6 +35,8 @@ public class Driver extends JFrame {
 	private RSA rsa;
 	private JTextField txtE;
 	private JTextField txtD;
+	private JTextField txtEncryptedM;
+	private JTextField txtDecryptedM;
 
 	/**
 	 * Launch the application.
@@ -60,7 +62,7 @@ public class Driver extends JFrame {
 
 		setTitle("Encryption GUI");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 425, 390);
+		setBounds(100, 100, 425, 405);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -72,13 +74,13 @@ public class Driver extends JFrame {
 		contentPane.add(lblRsa);
 
 		JPanel panel = new JPanel();
-		panel.setBounds(10, 37, 391, 306);
+		panel.setBounds(10, 37, 391, 330);
 		contentPane.add(panel);
 		panel.setLayout(null);
 
 		txtM = new JTextField();
 		txtM.setFont(Constants.TAHOMA_BASIC);
-		txtM.setBounds(164, 6, 96, 23);
+		txtM.setBounds(163, 6, 96, 23);
 		panel.add(txtM);
 		txtM.setColumns(10);
 
@@ -94,7 +96,7 @@ public class Driver extends JFrame {
 
 		txtP = new JTextField();
 		txtP.setFont(Constants.TAHOMA_BASIC);
-		txtP.setBounds(39, 68, 45, 21);
+		txtP.setBounds(39, 66, 45, 21);
 		panel.add(txtP);
 		txtP.setColumns(10);
 
@@ -123,7 +125,7 @@ public class Driver extends JFrame {
 		txtNp.setEditable(false);
 		txtNp.setEnabled(false);
 		txtNp.setColumns(10);
-		txtNp.setBounds(104, 112, 64, 21);
+		txtNp.setBounds(104, 111, 64, 21);
 		panel.add(txtNp);
 
 		JLabel lblPhi = new JLabel("\u03D5(n) (p-1 * q-1):");
@@ -159,10 +161,24 @@ public class Driver extends JFrame {
 		panel.add(lblD);
 
 		txtD = new JTextField();
+		txtD.setEditable(false);
+		txtD.setEnabled(false);
 		txtD.setFont(Constants.TAHOMA_BASIC);
 		txtD.setColumns(10);
-		txtD.setBounds(123, 242, 45, 21);
+		txtD.setBounds(123, 239, 45, 21);
 		panel.add(txtD);
+
+		JLabel lblEncryptedM = new JLabel("Encrypted m:");
+		lblEncryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblEncryptedM.setEnabled(false);
+		lblEncryptedM.setBounds(10, 269, 96, 19);
+		panel.add(lblEncryptedM);
+
+		JLabel lblDecryptedM = new JLabel("Decrypted m:");
+		lblDecryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblDecryptedM.setEnabled(false);
+		lblDecryptedM.setBounds(10, 300, 96, 19);
+		panel.add(lblDecryptedM);
 
 		JButton btnSetE = new JButton("Set e");
 		btnSetE.addActionListener(new ActionListener() {
@@ -170,9 +186,27 @@ public class Driver extends JFrame {
 
 				if (setE(txtE.getText())) {
 
-					lblD.setEnabled(true);
-					txtD.setEnabled(true);
+					if (rsa.getD().equals(BigInteger.ZERO)) {
+						System.out.println("Error: Invalid e (must be coprime to phi)");
+					} else {
+						lblD.setEnabled(true);
+						txtD.setEnabled(true);
+						txtD.setText(rsa.getD().toString());
 
+						lblEncryptedM.setEnabled(true);
+						txtEncryptedM.setEnabled(true);
+						lblDecryptedM.setEnabled(true);
+						txtDecryptedM.setEnabled(true);
+
+						// getting the final results
+						String encryptInfo = String.format("%d^%d mod %d = %d", rsa.getM(), rsa.getE(), rsa.getN(),
+								rsa.encryptM());
+						txtEncryptedM.setText(encryptInfo);
+
+						String decryptInfo = String.format("%d^%d mod %d = %d", rsa.encryptM(), rsa.getD(), rsa.getN(),
+								rsa.decryptM());
+						txtDecryptedM.setText(decryptInfo);
+					}
 				}
 			}
 		});
@@ -221,7 +255,7 @@ public class Driver extends JFrame {
 		txtQ = new JTextField();
 		txtQ.setFont(Constants.TAHOMA_BASIC);
 		txtQ.setColumns(10);
-		txtQ.setBounds(123, 69, 45, 21);
+		txtQ.setBounds(123, 66, 45, 21);
 		panel.add(txtQ);
 
 		txtECandidates = new JTextArea();
@@ -243,6 +277,22 @@ public class Driver extends JFrame {
 		txtE.setColumns(10);
 		txtE.setBounds(317, 140, 64, 21);
 		panel.add(txtE);
+
+		txtEncryptedM = new JTextField();
+		txtEncryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtEncryptedM.setEnabled(false);
+		txtEncryptedM.setEditable(false);
+		txtEncryptedM.setColumns(10);
+		txtEncryptedM.setBounds(123, 268, 258, 21);
+		panel.add(txtEncryptedM);
+
+		txtDecryptedM = new JTextField();
+		txtDecryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtDecryptedM.setEnabled(false);
+		txtDecryptedM.setEditable(false);
+		txtDecryptedM.setColumns(10);
+		txtDecryptedM.setBounds(123, 299, 258, 21);
+		panel.add(txtDecryptedM);
 
 	}
 
