@@ -8,10 +8,13 @@ import javax.swing.JTextField;
 import javax.swing.JSeparator;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.math.BigInteger;
 import java.awt.event.ActionEvent;
-import javax.swing.JTextArea;
 import java.awt.Font;
+import javax.swing.JTabbedPane;
+import javax.swing.JComboBox;
 
 /**
  * Main driver class of the program. Handles creating and updating the GUI.
@@ -23,20 +26,32 @@ import java.awt.Font;
 public class Driver extends JFrame {
 
 	private static final long serialVersionUID = 1L;
+
+	// Calculation variables.
+	private RSA rsa;
+	private ElGamal elgamal;
+
 	private JPanel contentPane;
-	private JTextField txtM;
 	private JTextField txtP;
 	private JTextField txtNp;
 	private JTextField txtPhi;
 	private JTextField txtQ;
-	private JTextArea txtECandidates;
-
-	// Calculation variables.
-	private RSA rsa;
 	private JTextField txtE;
 	private JTextField txtD;
 	private JTextField txtEncryptedM;
 	private JTextField txtDecryptedM;
+	private JTextField txtP2;
+	private JTextField txtG;
+	private JTextField txtX;
+	private JTextField txtY;
+	private JTextField txtEGM;
+	private JTextField txtM;
+	private JTextField txtR;
+	private JTextField txtK;
+	private JTextField txtC1;
+	private JTextField txtC2;
+	private JTextField txtKInverse;
+	private JTextField txtDecryptedEGM;
 
 	/**
 	 * Launch the application.
@@ -59,126 +74,356 @@ public class Driver extends JFrame {
 	 */
 	public Driver() {
 		rsa = new RSA();
+		elgamal = new ElGamal();
 
 		setTitle("Encryption GUI");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 425, 405);
+		setBounds(100, 100, 526, 361);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 
-		JLabel lblRsa = new JLabel("RSA Encryption");
-		lblRsa.setBounds(10, 10, 110, 17);
-		lblRsa.setFont(Constants.TAHOMA_HEADER);
-		contentPane.add(lblRsa);
+		JTabbedPane selectionPane = new JTabbedPane(JTabbedPane.TOP);
+		selectionPane.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		selectionPane.setBounds(10, 10, 491, 304);
+		contentPane.add(selectionPane);
 
-		JPanel panel = new JPanel();
-		panel.setBounds(10, 37, 391, 330);
-		contentPane.add(panel);
-		panel.setLayout(null);
+		populateRSA(selectionPane);
 
-		txtM = new JTextField();
-		txtM.setFont(Constants.TAHOMA_BASIC);
-		txtM.setBounds(163, 6, 96, 23);
-		panel.add(txtM);
-		txtM.setColumns(10);
+		JPanel panelPaillier = new JPanel();
+		selectionPane.addTab("Paillier", null, panelPaillier, null);
 
-		JLabel lblNumMessage = new JLabel("Numeric message (m):");
-		lblNumMessage.setBounds(10, 9, 143, 17);
-		panel.add(lblNumMessage);
-		lblNumMessage.setFont(Constants.TAHOMA_BASIC);
+		JPanel panelElGamal = new JPanel();
+		selectionPane.addTab("ElGamal", null, panelElGamal, null);
+		panelElGamal.setLayout(null);
+
+		JLabel lblY = new JLabel("Public key parameter (y):");
+		lblY.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblY.setEnabled(false);
+		lblY.setBounds(236, 71, 159, 19);
+		panelElGamal.add(lblY);
+
+		txtP2 = new JTextField();
+		txtP2.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtP2.setColumns(10);
+		txtP2.setBounds(124, 39, 64, 21);
+		panelElGamal.add(txtP2);
+
+		JLabel lblP2 = new JLabel("Prime (p):");
+		lblP2.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblP2.setBounds(10, 40, 64, 19);
+		panelElGamal.add(lblP2);
+
+		JLabel lblR = new JLabel("Random (r):");
+		lblR.setEnabled(false);
+		lblR.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblR.setBounds(10, 145, 78, 19);
+		panelElGamal.add(lblR);
+
+		txtR = new JTextField();
+		txtR.setEditable(false);
+		txtR.setEnabled(false);
+		txtR.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtR.setColumns(10);
+		txtR.setBounds(124, 144, 64, 21);
+		panelElGamal.add(txtR);
+
+		JLabel lblK = new JLabel("k:");
+		lblK.setEnabled(false);
+		lblK.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblK.setBounds(214, 145, 12, 19);
+		panelElGamal.add(lblK);
+
+		txtC1 = new JTextField();
+		txtC1.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtC1.setEnabled(false);
+		txtC1.setEditable(false);
+		txtC1.setColumns(10);
+		txtC1.setBounds(236, 175, 240, 21);
+		panelElGamal.add(txtC1);
+
+		txtC2 = new JTextField();
+		txtC2.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtC2.setEnabled(false);
+		txtC2.setEditable(false);
+		txtC2.setColumns(10);
+		txtC2.setBounds(236, 205, 240, 21);
+		panelElGamal.add(txtC2);
+
+		JLabel lblC1 = new JLabel("C1:");
+		lblC1.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblC1.setEnabled(false);
+		lblC1.setBounds(204, 176, 22, 19);
+		panelElGamal.add(lblC1);
+
+		JLabel lblC2 = new JLabel("C2:");
+		lblC2.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblC2.setEnabled(false);
+		lblC2.setBounds(204, 206, 22, 19);
+		panelElGamal.add(lblC2);
+
+		JLabel lblKInverse = new JLabel("k^-1:");
+		lblKInverse.setEnabled(false);
+		lblKInverse.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblKInverse.setBounds(10, 243, 36, 19);
+		panelElGamal.add(lblKInverse);
+
+		txtKInverse = new JTextField();
+		txtKInverse.setEditable(false);
+		txtKInverse.setEnabled(false);
+		txtKInverse.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtKInverse.setColumns(10);
+		txtKInverse.setBounds(56, 242, 132, 21);
+		panelElGamal.add(txtKInverse);
+
+		txtDecryptedEGM = new JTextField();
+		txtDecryptedEGM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtDecryptedEGM.setEnabled(false);
+		txtDecryptedEGM.setEditable(false);
+		txtDecryptedEGM.setColumns(10);
+		txtDecryptedEGM.setBounds(236, 241, 240, 21);
+		panelElGamal.add(txtDecryptedEGM);
+
+		JLabel lblDecryptedEGM = new JLabel("m:");
+		lblDecryptedEGM.setBounds(214, 243, 17, 19);
+		panelElGamal.add(lblDecryptedEGM);
+		lblDecryptedEGM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblDecryptedEGM.setEnabled(false);
+
+		JButton btnDecrypt = new JButton("Decrypt");
+		btnDecrypt.setEnabled(false);
+		btnDecrypt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (setR(txtR.getText())) {
+					lblK.setEnabled(true);
+					lblC1.setEnabled(true);
+					lblC2.setEnabled(true);
+					lblKInverse.setEnabled(true);
+					lblDecryptedEGM.setEnabled(true);
+					txtK.setEnabled(true);
+					txtC1.setEnabled(true);
+					txtC2.setEnabled(true);
+					txtKInverse.setEnabled(true);
+					txtDecryptedEGM.setEnabled(true);
+
+					String kInfo = String.format("%d^%d mod %d = %d", elgamal.getY(), elgamal.getR(), elgamal.getP(),
+							elgamal.getK());
+					txtK.setText(kInfo);
+
+					String c1Info = String.format("%d^%d mod %d = %d", elgamal.getG(), elgamal.getR(), elgamal.getP(),
+							elgamal.getC1());
+					txtC1.setText(c1Info);
+
+					String c2Info = String.format("(%d * %d) mod %d = %d", elgamal.getM(), elgamal.getK(),
+							elgamal.getP(), elgamal.getC2());
+					txtC2.setText(c2Info);
+
+					String kInverseInfo = String.format("%d^-1 mod %d = %d", elgamal.getK(), elgamal.getP(),
+							elgamal.getKInverse());
+					txtKInverse.setText(kInverseInfo);
+
+					String decryptedEGMInfo = String.format("(%d * %d) mod %d = %d", elgamal.getKInverse(),
+							elgamal.getC2(), elgamal.getP(), elgamal.decryptM());
+					txtDecryptedEGM.setText(decryptedEGMInfo);
+				}
+			}
+		});
+		btnDecrypt.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnDecrypt.setBounds(10, 191, 136, 34);
+		panelElGamal.add(btnDecrypt);
+
+		JButton btnGenY = new JButton("Calculate y");
+		btnGenY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (setElGamalValues(txtEGM.getText(), txtP2.getText(), txtG.getText(), txtX.getText())) {
+
+					lblY.setEnabled(true);
+					txtY.setEnabled(true);
+
+					String yInfo = String.format("%d^%d mod %d = %d", elgamal.getG(), elgamal.getX(), elgamal.getP(),
+							elgamal.getY());
+					txtY.setText(yInfo);
+
+					lblR.setEnabled(true);
+					txtR.setEnabled(true);
+					txtR.setEditable(true);
+					btnDecrypt.setEnabled(true);
+				}
+			}
+
+		});
+		btnGenY.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnGenY.setBounds(340, 10, 136, 34);
+		panelElGamal.add(btnGenY);
+
+		JLabel lblG = new JLabel("Generator (g):");
+		lblG.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblG.setBounds(10, 71, 94, 19);
+		panelElGamal.add(lblG);
+
+		txtG = new JTextField();
+		txtG.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtG.setColumns(10);
+		txtG.setBounds(124, 70, 64, 21);
+		panelElGamal.add(txtG);
+
+		txtX = new JTextField();
+		txtX.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtX.setColumns(10);
+		txtX.setBounds(124, 100, 64, 21);
+		panelElGamal.add(txtX);
+
+		JLabel lblX = new JLabel("Private key (x):");
+		lblX.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblX.setBounds(10, 101, 97, 19);
+		panelElGamal.add(lblX);
+
+		JSeparator separator_2 = new JSeparator();
+		separator_2.setBounds(10, 131, 466, 1);
+		panelElGamal.add(separator_2);
+
+		txtY = new JTextField();
+		txtY.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtY.setEnabled(false);
+		txtY.setEditable(false);
+		txtY.setColumns(10);
+		txtY.setBounds(236, 100, 240, 21);
+		panelElGamal.add(txtY);
+
+		JLabel lblEGM = new JLabel("Numeric message (m):");
+		lblEGM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblEGM.setBounds(10, 13, 143, 17);
+		panelElGamal.add(lblEGM);
+
+		txtEGM = new JTextField();
+		txtEGM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtEGM.setColumns(10);
+		txtEGM.setBounds(163, 10, 96, 23);
+		panelElGamal.add(txtEGM);
+
+		txtK = new JTextField();
+		txtK.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtK.setEnabled(false);
+		txtK.setEditable(false);
+		txtK.setColumns(10);
+		txtK.setBounds(236, 144, 240, 21);
+		panelElGamal.add(txtK);
+
+		JSeparator separator_2_1 = new JSeparator();
+		separator_2_1.setBounds(10, 235, 466, 1);
+		panelElGamal.add(separator_2_1);
+
+	}
+
+	private void populateRSA(JTabbedPane selectionPane) {
+		JPanel panelRSA = new JPanel();
+		selectionPane.addTab("RSA", null, panelRSA, null);
+		panelRSA.setLayout(null);
 
 		JLabel lblQ = new JLabel("q:");
-		lblQ.setBounds(94, 67, 19, 19);
-		panel.add(lblQ);
+		lblQ.setBounds(94, 72, 19, 19);
+		panelRSA.add(lblQ);
 		lblQ.setFont(Constants.TAHOMA_BASIC);
 
 		txtP = new JTextField();
 		txtP.setFont(Constants.TAHOMA_BASIC);
-		txtP.setBounds(39, 66, 45, 21);
-		panel.add(txtP);
+		txtP.setBounds(39, 71, 45, 21);
+		panelRSA.add(txtP);
 		txtP.setColumns(10);
 
 		JLabel lblP = new JLabel("p:");
-		lblP.setBounds(10, 67, 19, 19);
-		panel.add(lblP);
+		lblP.setBounds(10, 72, 19, 19);
+		panelRSA.add(lblP);
 		lblP.setFont(Constants.TAHOMA_BASIC);
 
 		JLabel lblTwoPrimes = new JLabel("Two prime numbers (p and q)");
-		lblTwoPrimes.setBounds(10, 39, 191, 19);
-		panel.add(lblTwoPrimes);
+		lblTwoPrimes.setBounds(10, 43, 191, 19);
+		panelRSA.add(lblTwoPrimes);
 		lblTwoPrimes.setFont(Constants.TAHOMA_BASIC);
 
 		JSeparator separator = new JSeparator();
-		separator.setBounds(10, 100, 371, 2);
-		panel.add(separator);
+		separator.setBounds(10, 165, 466, 2);
+		panelRSA.add(separator);
 
 		JLabel lblNp = new JLabel("n (p * q):");
 		lblNp.setEnabled(false);
 		lblNp.setFont(Constants.TAHOMA_BASIC);
-		lblNp.setBounds(10, 112, 62, 19);
-		panel.add(lblNp);
+		lblNp.setBounds(308, 43, 62, 19);
+		panelRSA.add(lblNp);
 
 		txtNp = new JTextField();
 		txtNp.setFont(Constants.TAHOMA_BASIC);
 		txtNp.setEditable(false);
 		txtNp.setEnabled(false);
 		txtNp.setColumns(10);
-		txtNp.setBounds(104, 111, 64, 21);
-		panel.add(txtNp);
+		txtNp.setBounds(380, 42, 96, 21);
+		panelRSA.add(txtNp);
 
 		JLabel lblPhi = new JLabel("\u03D5(n) (p-1 * q-1):");
 		lblPhi.setFont(Constants.TAHOMA_BASIC);
 		lblPhi.setEnabled(false);
-		lblPhi.setBounds(197, 112, 110, 19);
-		panel.add(lblPhi);
+		lblPhi.setBounds(260, 72, 110, 19);
+		panelRSA.add(lblPhi);
 
 		txtPhi = new JTextField();
 		txtPhi.setFont(Constants.TAHOMA_BASIC);
 		txtPhi.setEnabled(false);
 		txtPhi.setEditable(false);
 		txtPhi.setColumns(10);
-		txtPhi.setBounds(317, 111, 64, 21);
-		panel.add(txtPhi);
+		txtPhi.setBounds(380, 71, 96, 21);
+		panelRSA.add(txtPhi);
 
-		JLabel lblECandidates = new JLabel("e-candidates: (coprime to \u03D5)");
+		JLabel lblECandidates = new JLabel("<html>e-candidates: <br/> (coprime to \u03D5)</html>");
 		lblECandidates.setFont(Constants.TAHOMA_BASIC);
 		lblECandidates.setEnabled(false);
-		lblECandidates.setBounds(10, 141, 191, 19);
-		panel.add(lblECandidates);
+		lblECandidates.setBounds(274, 110, 96, 45);
+		panelRSA.add(lblECandidates);
 
 		JLabel lblE = new JLabel("e:");
 		lblE.setEnabled(false);
 		lblE.setFont(Constants.TAHOMA_BASIC);
-		lblE.setBounds(288, 141, 19, 19);
-		panel.add(lblE);
+		lblE.setBounds(10, 177, 19, 19);
+		panelRSA.add(lblE);
 
 		JLabel lblD = new JLabel("Private key (d):");
 		lblD.setEnabled(false);
 		lblD.setFont(Constants.TAHOMA_BASIC);
-		lblD.setBounds(10, 240, 103, 19);
-		panel.add(lblD);
+		lblD.setBounds(156, 177, 98, 19);
+		panelRSA.add(lblD);
 
 		txtD = new JTextField();
 		txtD.setEditable(false);
 		txtD.setEnabled(false);
 		txtD.setFont(Constants.TAHOMA_BASIC);
 		txtD.setColumns(10);
-		txtD.setBounds(123, 239, 45, 21);
-		panel.add(txtD);
+		txtD.setBounds(260, 177, 45, 21);
+		panelRSA.add(txtD);
+
+		JComboBox<String> cbxECandidates = new JComboBox<String>();
+		cbxECandidates.setEnabled(false);
+		cbxECandidates.setBounds(380, 130, 96, 21);
+		cbxECandidates.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				txtE.setText(e.getItem().toString());
+
+			}
+		});
+		panelRSA.add(cbxECandidates);
 
 		JLabel lblEncryptedM = new JLabel("Encrypted m:");
 		lblEncryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		lblEncryptedM.setEnabled(false);
-		lblEncryptedM.setBounds(10, 269, 96, 19);
-		panel.add(lblEncryptedM);
+		lblEncryptedM.setBounds(166, 214, 84, 19);
+		panelRSA.add(lblEncryptedM);
 
 		JLabel lblDecryptedM = new JLabel("Decrypted m:");
 		lblDecryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		lblDecryptedM.setEnabled(false);
-		lblDecryptedM.setBounds(10, 300, 96, 19);
-		panel.add(lblDecryptedM);
+		lblDecryptedM.setBounds(164, 243, 90, 19);
+		panelRSA.add(lblDecryptedM);
 
 		JButton btnSetE = new JButton("Set e");
 		btnSetE.addActionListener(new ActionListener() {
@@ -212,14 +457,14 @@ public class Driver extends JFrame {
 		});
 		btnSetE.setEnabled(false);
 		btnSetE.setFont(Constants.TAHOMA_BASIC);
-		btnSetE.setBounds(271, 184, 110, 34);
-		panel.add(btnSetE);
+		btnSetE.setBounds(10, 206, 110, 34);
+		panelRSA.add(btnSetE);
 
 		JButton btnSetValues = new JButton("Set values");
 		btnSetValues.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) { // On clicking to set values...
 
-				if (setValues(txtM.getText(), txtP.getText(), txtQ.getText())) {
+				if (setRSAValues(txtM.getText(), txtP.getText(), txtQ.getText())) {
 
 					// enable display
 					lblNp.setEnabled(true);
@@ -227,7 +472,7 @@ public class Driver extends JFrame {
 					lblPhi.setEnabled(true);
 					txtPhi.setEnabled(true);
 					lblECandidates.setEnabled(true);
-					txtECandidates.setEnabled(true);
+					cbxECandidates.setEnabled(true);
 					lblE.setEnabled(true);
 					btnSetE.setEnabled(true);
 					txtE.setEditable(true);
@@ -237,11 +482,10 @@ public class Driver extends JFrame {
 					txtPhi.setText(rsa.getPhi().toString());
 
 					// displaying in the box (but reset first)
-					txtECandidates.setText(null);
+					cbxECandidates.removeAllItems();
 
 					for (BigInteger bi : rsa.getECandidates()) {
-						txtECandidates.append(bi.toString());
-						txtECandidates.append(" ");
+						cbxECandidates.addItem(bi.toString());
 					}
 
 				}
@@ -249,54 +493,51 @@ public class Driver extends JFrame {
 			}
 		});
 		btnSetValues.setFont(Constants.TAHOMA_BASIC);
-		btnSetValues.setBounds(271, 59, 110, 34);
-		panel.add(btnSetValues);
+		btnSetValues.setBounds(10, 121, 110, 34);
+		panelRSA.add(btnSetValues);
 
 		txtQ = new JTextField();
 		txtQ.setFont(Constants.TAHOMA_BASIC);
 		txtQ.setColumns(10);
-		txtQ.setBounds(123, 66, 45, 21);
-		panel.add(txtQ);
-
-		txtECandidates = new JTextArea();
-		txtECandidates.setWrapStyleWord(true);
-		txtECandidates.setFont(Constants.TAHOMA_BASIC);
-		txtECandidates.setEnabled(false);
-		txtECandidates.setEditable(false);
-		txtECandidates.setLineWrap(true);
-		txtECandidates.setBounds(10, 170, 158, 48);
-		panel.add(txtECandidates);
-
-		JSeparator separator_1 = new JSeparator();
-		separator_1.setBounds(10, 228, 371, 2);
-		panel.add(separator_1);
+		txtQ.setBounds(123, 71, 45, 21);
+		panelRSA.add(txtQ);
 
 		txtE = new JTextField();
 		txtE.setFont(Constants.TAHOMA_BASIC);
 		txtE.setEditable(false);
 		txtE.setColumns(10);
-		txtE.setBounds(317, 140, 64, 21);
-		panel.add(txtE);
+		txtE.setBounds(39, 177, 45, 21);
+		panelRSA.add(txtE);
 
 		txtEncryptedM = new JTextField();
 		txtEncryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		txtEncryptedM.setEnabled(false);
 		txtEncryptedM.setEditable(false);
 		txtEncryptedM.setColumns(10);
-		txtEncryptedM.setBounds(123, 268, 258, 21);
-		panel.add(txtEncryptedM);
+		txtEncryptedM.setBounds(260, 213, 216, 21);
+		panelRSA.add(txtEncryptedM);
 
 		txtDecryptedM = new JTextField();
 		txtDecryptedM.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		txtDecryptedM.setEnabled(false);
 		txtDecryptedM.setEditable(false);
 		txtDecryptedM.setColumns(10);
-		txtDecryptedM.setBounds(123, 299, 258, 21);
-		panel.add(txtDecryptedM);
+		txtDecryptedM.setBounds(260, 242, 216, 21);
+		panelRSA.add(txtDecryptedM);
 
+		txtM = new JTextField();
+		txtM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtM.setColumns(10);
+		txtM.setBounds(163, 10, 96, 23);
+		panelRSA.add(txtM);
+
+		JLabel lblM = new JLabel("Numeric message (m):");
+		lblM.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lblM.setBounds(10, 13, 143, 17);
+		panelRSA.add(lblM);
 	}
 
-	protected boolean setValues(String m, String p, String q) {
+	protected boolean setRSAValues(String m, String p, String q) {
 		// Setting the values for RSA calculation. (m = message, p and q = prime
 		// numbers)
 
@@ -327,5 +568,39 @@ public class Driver extends JFrame {
 			System.out.println("Error: Invalid format");
 		}
 		return false;
+	}
+
+	protected boolean setElGamalValues(String m, String p, String g, String x) {
+		// Setting the values for ElGamal calculation (prime, generator and private
+		// key).
+
+		try {
+			BigInteger mInt = new BigInteger(m);
+			BigInteger pInt = new BigInteger(p);
+			BigInteger gInt = new BigInteger(g);
+			BigInteger xInt = new BigInteger(x);
+
+			elgamal.setValues(mInt, pInt, gInt, xInt);
+			return true;
+
+		} catch (NumberFormatException e) {
+			System.out.println("Error: Invalid format");
+		}
+		return false;
+	}
+
+	protected boolean setR(String r) {
+
+		try {
+			BigInteger rInt = new BigInteger(r);
+
+			elgamal.setR(rInt);
+			return true;
+
+		} catch (NumberFormatException e) {
+			System.out.println("Error: Invalid format");
+		}
+		return false;
+
 	}
 }
